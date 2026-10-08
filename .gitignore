@@ -1,3 +1,19 @@
 node_modules/
 test-results/
 __pycache__/
+
+# Unity-generated state (keep Assets and their .meta files tracked).
+unity/Nightfall/[Ll]ibrary/
+unity/Nightfall/[Tt]emp/
+unity/Nightfall/[Oo]bj/
+unity/Nightfall/[Ll]ogs/
+unity/Nightfall/[Uu]ser[Ss]ettings/
+unity/Nightfall/[Bb]uild/
+unity/Nightfall/[Bb]uilds/
+unity/Nightfall/.vs/
+unity/Nightfall/*.csproj
+unity/Nightfall/*.sln
+unity/Nightfall/*.slnx
+unity/Nightfall/*.user
+unity/RuleChecks/bin/
+unity/RuleChecks/obj/

@@ -1,5 +1,13 @@
 # Nightfall
 
+## Unity version
+
+The Unity 2D desktop project is in **`unity/Nightfall`**. Install Unity Hub and Unity 6.6, add that folder as a project, open `Assets/Scenes/Nightfall.unity`, and press **Play**. The forest is generated when Play starts.
+
+See **[Unity opening, playing, and building instructions](unity/Nightfall/README.md)** for the full steps and validation status. C# gameplay checks pass; Unity Editor import, Play mode, and executable builds have not been validated in this environment.
+
+## Browser version
+
 A complete, three-chapter top-down forest adventure built with HTML Canvas and vanilla JavaScript. Gather the light, evade the spirits, and find your way home.
 
 ## Run
