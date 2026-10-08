@@ -6,6 +6,8 @@ The separate Unity 6.6 project is in **`unity/SlimeAscent`**. Add that folder in
 
 See **[opening and gameplay instructions](unity/SlimeAscent/README.md)** and **[GDD coverage](unity/SlimeAscent/DESIGN.md)**. The C# rule checks pass; Unity editor playback, rendering, audio and executable builds remain unverified here.
 
+The visual update includes animated slime evolutions and enemies, three dungeon themes, combat effects, and illustrated title/ending backgrounds. View the **[art preview](unity/SlimeAscent/Assets/Resources/Art/art-preview.png)** and **[art guide](unity/SlimeAscent/ART.md)**. Download the full project folder to include the textures.
+
 ## Unity version
 
 The Unity 2D desktop project is in **`unity/Nightfall`**. Install Unity Hub and Unity 6.6, add that folder as a project, open `Assets/Scenes/Nightfall.unity`, and press **Play**. The forest is generated when Play starts.

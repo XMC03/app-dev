@@ -6,7 +6,7 @@ The user supplied **Slime Ascent: Devour the Dungeon** as the design for a new U
 | --- | --- |
 | Villain slime in a parallel Underworld | Slime player, opening narrative, three dungeon floors and separate human-world ending. |
 | Three hand-built floors with rooms and tunnels | Lower/Middle/Upper scenes; each has three tile rooms joined by narrow corridors, with floor-specific enemy populations. |
-| Rat, Bat, Lizard, Beetle, Warrior, Mage plus Guardian | All seven species have their own HP/rewards/palette. Mage/Lizard use projectiles, small prey can flee, Guardian uses a telegraphed slam. |
+| Rat, Bat, Lizard, Beetle, Warrior, Mage plus Guardian | All seven species have their own HP/rewards and distinct animated sprites. Mage/Lizard use projectiles, small prey can flee, Guardian uses a circular telegraphed slam. |
 | Move, Bite, Slam, Tackle, Devour, Hide, gates, evolution | GDD keyboard/mouse bindings, with arrows and P offered as additional controls. |
 | Patrol, notice, chase, flee and vision cones | Cone-based suspicion with wall occlusion; state changes, route finding around walls, weakened-creature fleeing. |
 | Heroes hunt monsters; player chooses opportunities | Opposing factions attack nearby rivals and leave weakened bodies or corpses. |
@@ -20,7 +20,8 @@ The user supplied **Slime Ascent: Devour the Dungeon** as the design for a new U
 | Floor-start checkpoint and death restart | One PlayerPrefs checkpoint containing entry progress; death reloads the current scene after three seconds. |
 | HUD and feedback | HP/XP/Essence/Biomass/detection bars, learned skill bar, Devour prompt and progress ring, enemy HP, boss warning, effects and messages. |
 | Sound and one music loop per floor | Locally synthesized feedback clips and three distinct ambient note loops; separate ending music. |
-| Pixel art, four directions, evolution effects | Procedural point-filtered sprite banks with directional faces, two-frame animation, level scaling, palette/horn swaps and particles. |
+| Pixel art, four directions, evolution effects | Included point-filtered atlases: four slime forms, six actions, four directions and four frames; seven distinct enemy designs; themed tiles, props, animated effects and skill auras. |
+| Opening and human-world ending | Included illustrated backgrounds; opening floor diagram and ending narrative overlay; fleeing human sprites in the separate ending scene. |
 | Fixed 16:9, following top-down camera | Orthographic fixed-angle follow; reference 1280×720; letterboxing. |
 | No feature creep | No online play, gear/inventory, crafting, shops, quests, procedural maps, extra floors/bosses or playable human-world area. |
 

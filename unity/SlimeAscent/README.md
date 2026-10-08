@@ -12,7 +12,20 @@ A Unity 6.6, single-player, offline, top-down dungeon action RPG prototype based
 6. Press **Play ▶**, select the **Game** tab, and click **Begin a new ascent**.
 7. Watch the short opening, or press Enter to skip it. The dungeon is generated when playing; Edit-mode scenes are intentionally minimal.
 
-The project uses the built-in render pipeline. Artwork and sound are generated locally in C#, so there are no asset downloads, API keys, or manual Inspector references to assign. It uses Unity's legacy Input Manager, which Unity 6.6 may mark deprecated; that warning does not mean the game has a compile error.
+The project uses the built-in render pipeline. Included PNG sprite atlases and illustrations load automatically; sound is synthesized locally in C#. There are no separate asset downloads, API keys, or manual Inspector references to assign. It uses Unity's legacy Input Manager, which Unity 6.6 may mark deprecated; that warning does not mean the game has a compile error.
+
+**Updating an earlier copy:** download the latest ZIP from `codex/slime-ascent` and add its `unity/SlimeAscent` folder as a fresh project in Hub. Copying only the scripts will omit the new `Assets/Resources/Art` textures and their import settings.
+
+## Visual improvements
+
+- Four visibly different slime forms, each with four directions and four-frame idle, movement, Bite, Slam/Tackle, hurt and Devour animations.
+- Distinct Rat, Bat, Lizard, Beetle, Warrior, Mage and Guardian sprites, with facing cues and animation.
+- Lower-floor moss, pools and fungi; Middle-floor carpets and hero camps; Upper-floor obsidian, crystals and sanctuary runes.
+- Animated fire, gas, projectiles, impact effects, Devour essence, skill auras and active Rift glow; hit flashes and floating damage numbers.
+- Circular Guardian and falling-rock warnings sized to their damage areas.
+- Illustrated title/opening and human-world ending backgrounds, plus evolution-form previews in Tab.
+
+See the [art preview](Assets/Resources/Art/art-preview.png) and [asset layout and customization guide](ART.md). Decorative scenery does not change map collision or gameplay rules.
 
 ## Controls
 
@@ -77,7 +90,7 @@ To export: install the matching desktop build-support module in Hub, select Wind
 
 See [GDD coverage and tuning](DESIGN.md) for the requirement mapping and the specific values chosen where the GDD leaves details open. The worksheet's prompts were treated as document context; the filled design supplied the gameplay requirements. The original assignment PDF and personal group information are not included in the repository.
 
-This is a source prototype with procedural pixel artwork and synthesized sound/music. It does not add multiplayer, crafting, equipment, quests, procedural levels, additional bosses, or a playable human world.
+This is a source prototype with included pixel sprite atlases, generated background illustrations and synthesized sound/music. It does not add multiplayer, crafting, equipment, quests, procedural levels, additional bosses, or a playable human world.
 
 ## Validation — what is and is not verified
 
@@ -95,3 +108,11 @@ python3 unity/validate_slime_project.py
 ```
 
 These tools require no NuGet packages. Keep `SlimeChecks` outside the Unity Assets directory.
+
+Optional artwork checks require Python with Pillow (`python3 -m pip install Pillow`):
+
+```sh
+python3 tests/art/check_slime_art.py
+```
+
+These checks cover all 612 nonempty atlas cells, distinct forms and enemy facings, action-frame variation, illustration dimensions and pixel-safe texture settings. They do not verify Unity rendering. Python and .NET are development tools; neither is required to open or play the project in Unity.

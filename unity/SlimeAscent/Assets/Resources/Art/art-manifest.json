@@ -1,0 +1,68 @@
+{
+  "cell": 64,
+  "directions": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "forms": [
+    "awakening",
+    "fire_resistance",
+    "heat_immunity",
+    "flame_body"
+  ],
+  "actions": [
+    "idle",
+    "walk",
+    "bite",
+    "slam",
+    "hurt",
+    "devour"
+  ],
+  "species": [
+    "rat",
+    "cave_bat",
+    "fire_lizard",
+    "armored_beetle",
+    "hero_warrior",
+    "hero_mage",
+    "guardian"
+  ],
+  "atlases": {
+    "slime": [
+      24,
+      16
+    ],
+    "enemies": [
+      4,
+      28
+    ],
+    "tiles": [
+      12,
+      3
+    ],
+    "props": [
+      8,
+      4
+    ],
+    "effects": [
+      12,
+      4
+    ]
+  },
+  "effects": [
+    "fire",
+    "gas",
+    "slam",
+    "bite",
+    "essence",
+    "rift",
+    "boss_shockwave",
+    "flame_aura",
+    "projectile",
+    "telegraph",
+    "harden",
+    "echo"
+  ]
+}
