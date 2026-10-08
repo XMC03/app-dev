@@ -1,0 +1,13 @@
+{
+  "name": "nightfall",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A top-down forest adventure built with Canvas and vanilla JavaScript",
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "node --test tests/*.test.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.64.0"
+  }
+}
