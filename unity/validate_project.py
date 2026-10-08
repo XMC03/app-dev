@@ -28,6 +28,6 @@ assert 'activeInputHandler: 0' in (project / 'ProjectSettings' / 'ProjectSetting
 manifest = json.loads((project / 'Packages' / 'manifest.json').read_text())
 assert manifest['dependencies']['com.unity.modules.audio'] == '1.0.0'
 assert manifest['dependencies']['com.unity.modules.imgui'] == '1.0.0'
-assert (project / 'ProjectSettings' / 'ProjectVersion.txt').read_text().startswith('m_EditorVersion: 6000.0.')
+assert (project / 'ProjectSettings' / 'ProjectVersion.txt').read_text().startswith('m_EditorVersion: 6000.6.')
 print(f'PASS Unity project structure, {len(guids)} metadata GUIDs, scene script, build scene, input and package declarations.')
 print('Unity Editor import, Play mode, rendering, audio and executable builds are not validated by this check.')

@@ -5,7 +5,7 @@ A Unity 2D desktop version of the three-chapter top-down forest adventure. All s
 ## Open and play
 
 1. Install **Unity Hub** from <https://unity.com/download>.
-2. In Hub, install **Unity 6.0 LTS**. This project is pinned to **6000.0.60f1**. Using a newer 6000.0 patch may show an upgrade prompt; keep a backup before upgrading. Install your desktop platform's build-support module if you want to export a standalone game.
+2. In Hub, install **Unity 6.6**. This project is pinned to **6000.6.4f1**. If your installed Unity 6.6 editor has a different `6000.6` patch number, use Hub’s editor-version selector to open it with that installed editor. Unity may update the project’s patch version on import. Install your desktop platform's build-support module if you want to export a standalone game.
 3. Download/extract the GitHub repository, or clone it.
 4. In Unity Hub, choose **Projects → Add → Add project from disk**. Select the **`unity/Nightfall`** folder: the folder containing `Assets`, `Packages`, and `ProjectSettings`.
 5. Open the project and wait for Unity to import and compile its scripts.
