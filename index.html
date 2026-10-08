@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101d23">
+  <meta name="description" content="Nightfall: a free top-down forest adventure. Gather the light, evade the spirits, and find your way home.">
+  <title>Nightfall · A forest adventure</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header class="masthead">
+    <a class="brand" href="./" aria-label="Nightfall home"><span class="brand-mark">✦</span> NIGHTFALL</a>
+    <span class="edition">A LITTLE ADVENTURE AFTER DARK</span>
+    <button id="sound" class="icon-button" aria-pressed="false" aria-label="Enable sound">Sound off</button>
+  </header>
+  <section class="heading">
+    <div><p class="eyebrow">THE FOREST IS CALLING</p><h1>Find your way <em>home.</em></h1><p class="subtitle">Gather the light. Stay one step ahead of the dark.</p></div>
+    <div class="chapter"><span id="chapter-number">01 / 03</span><span id="chapter-name">The quiet grove</span></div>
+  </section>
+  <section class="game-shell" aria-label="Nightfall game">
+    <div class="hud">
+      <div><span class="hud-label">VITALITY</span><span id="hearts" class="hearts" aria-label="3 hearts">♥ ♥ ♥</span></div>
+      <div><span class="hud-label">LIGHT GATHERED</span><span id="crystals">0 / 8</span><span class="crystal-icon">◆</span></div>
+      <div class="time-stat"><span class="hud-label">TIME</span><span id="time">00:00</span></div>
+      <button id="pause" class="icon-button" disabled>Pause <kbd>P</kbd></button>
+    </div>
+    <div class="viewport">
+      <canvas id="game" width="960" height="600" tabindex="0" aria-label="Top-down forest. Move with WASD or arrows. Hold Shift to dash. Gather eight crystals, then enter the glowing gate.">Your browser needs Canvas support to play Nightfall.</canvas>
+      <div id="overlay" class="overlay">
+        <div class="modal">
+          <span id="modal-symbol" class="modal-symbol" aria-hidden="true">✦</span>
+          <p id="modal-eyebrow" class="eyebrow">A THREE CHAPTER ADVENTURE</p>
+          <h2 id="modal-title">A light in the dark.</h2>
+          <p id="modal-copy">Eight scattered crystals will open the forest gate. Gather them, evade the spirits, and cross three glades to get home.</p>
+          <div id="intro-controls" class="intro-controls"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span><kbd>Shift</kbd> Dash</span><span><kbd>P</kbd> Pause</span></div>
+          <button id="primary" class="primary-button">Enter the forest <span aria-hidden="true">→</span></button>
+          <p id="best" class="best"></p>
+        </div>
+      </div>
+      <div class="world-caption"><span id="objective">COLLECT THE CRYSTALS · REACH THE GATE</span><span>✦ NIGHTFALL</span></div>
+    </div>
+    <div class="game-bottom"><div class="dash-status"><span>DASH</span><div class="dash-track"><div id="dash-fill"></div></div><kbd>Shift</kbd></div><span id="hint">The spirits can’t outrun you. Keep moving.</span><button id="restart" class="text-button">Restart chapter ↻</button></div>
+  </section>
+  <div class="touch-controls" aria-label="Touch controls">
+    <div class="d-pad"><button data-key="ArrowUp" class="up" aria-label="Move up">↑</button><button data-key="ArrowLeft" class="left" aria-label="Move left">←</button><button data-key="ArrowDown" class="down" aria-label="Move down">↓</button><button data-key="ArrowRight" class="right" aria-label="Move right">→</button></div>
+    <button data-key="Shift" class="dash-button" aria-label="Dash">DASH<br><span>hold</span></button>
+  </div>
+  <footer><span><span class="footer-dot"></span> A tiny world. A little courage.</span><span>WASD or arrows to move · Shift to dash · Esc to pause</span></footer>
+  <p id="announcement" class="sr-only" role="status" aria-live="polite"></p>
+</main>
+<script src="game.js"></script>
+</body>
+</html>
