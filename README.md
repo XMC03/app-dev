@@ -1,4 +1,10 @@
-# Nightfall
+# Nightfall and Slime Ascent
+
+## Slime Ascent — new game from your GDD
+
+The separate Unity 6.6 project is in **`unity/SlimeAscent`**. Add that folder in Unity Hub, open **`Assets/Scenes/Opening.unity`**, and press Play. It implements the dungeon survival, Devour/evolution, stealth and hazard mechanics from the supplied **Slime Ascent: Devour the Dungeon** design.
+
+See **[opening and gameplay instructions](unity/SlimeAscent/README.md)** and **[GDD coverage](unity/SlimeAscent/DESIGN.md)**. The C# rule checks pass; Unity editor playback, rendering, audio and executable builds remain unverified here.
 
 ## Unity version
 

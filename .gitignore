@@ -17,3 +17,19 @@ unity/Nightfall/*.slnx
 unity/Nightfall/*.user
 unity/RuleChecks/bin/
 unity/RuleChecks/obj/
+
+# Slime Ascent Unity project and independent checks.
+unity/SlimeAscent/[Ll]ibrary/
+unity/SlimeAscent/[Tt]emp/
+unity/SlimeAscent/[Oo]bj/
+unity/SlimeAscent/[Ll]ogs/
+unity/SlimeAscent/[Uu]ser[Ss]ettings/
+unity/SlimeAscent/[Bb]uild/
+unity/SlimeAscent/[Bb]uilds/
+unity/SlimeAscent/.vs/
+unity/SlimeAscent/*.csproj
+unity/SlimeAscent/*.sln
+unity/SlimeAscent/*.slnx
+unity/SlimeAscent/*.user
+unity/SlimeChecks/bin/
+unity/SlimeChecks/obj/
