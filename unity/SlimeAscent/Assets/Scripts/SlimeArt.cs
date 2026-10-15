@@ -14,6 +14,11 @@ namespace SlimeAscent
         public readonly Sprite[,] Tiles=new Sprite[3,12];
         public readonly Sprite[] Props=new Sprite[32];
         public readonly Sprite[,] Effects=new Sprite[12,4];
+        public readonly Sprite[,] Humans=new Sprite[5,6];
+        [Serializable] private sealed class HumanLayout
+        {public int width,height;public string[] classes;public int[] columns,rowEdges,feet,bodyCenters,pixelsPerUnit;public FrameAdjust[] adjustments;}
+        [Serializable] private sealed class FrameAdjust {public int role,pose,left,right;public ClipBand[] bands;}
+        [Serializable] private sealed class ClipBand {public int left,right,top,bottom;}
         public readonly Texture2D Title,Ending;
         private readonly List<Sprite> owned=new List<Sprite>();
         public SlimeArt()
@@ -31,6 +36,36 @@ namespace SlimeAscent
             var effects=Texture("effects",768,256);
             for(int effect=0;effect<12;effect++)for(int frame=0;frame<4;frame++)Effects[effect,frame]=Slice(effects,effect%3*4+frame,effect/3,32);
             Title=Texture("title");Ending=Texture("ending");
+            var layoutAsset=Resources.Load<TextAsset>("Art/humans-layout");
+            if(layoutAsset==null)throw new InvalidOperationException("Missing human sprite layout. Download the complete updated project.");
+            var layout=JsonUtility.FromJson<HumanLayout>(layoutAsset.text);
+            if(layout==null||layout.columns==null||layout.columns.Length!=7||layout.rowEdges==null||layout.rowEdges.Length!=6||layout.feet==null||layout.feet.Length!=5||layout.bodyCenters==null||layout.bodyCenters.Length!=6||layout.pixelsPerUnit==null||layout.pixelsPerUnit.Length!=5)throw new InvalidOperationException("Invalid human sprite layout.");
+            var humans=Texture("humans",layout.width,layout.height);
+            for(int role=0;role<5;role++)for(int pose=0;pose<6;pose++)
+            {
+                FrameAdjust adjust=layout.adjustments==null?null:Array.Find(layout.adjustments,a=>a.role==role&&a.pose==pose);
+                int left=adjust==null?layout.columns[pose]:adjust.left,right=adjust==null?layout.columns[pose+1]:adjust.right;
+                float w=right-left,h=layout.rowEdges[role+1]-layout.rowEdges[role];
+                var rect=new Rect(left,humans.height-layout.rowEdges[role+1],w,h);
+                var pivot=new Vector2((layout.bodyCenters[pose]-left)/w,(layout.rowEdges[role+1]-layout.feet[role])/h);
+                var sprite=Sprite.Create(humans,rect,pivot,layout.pixelsPerUnit[role],0,SpriteMeshType.FullRect);
+                // Two sword poses overlap horizontally in the supplied-style sheet.
+                // Separate their render geometry without altering the source PNG.
+                if(adjust!=null&&adjust.bands!=null)
+                {
+                    var vertices=new List<Vector2>();var triangles=new List<ushort>();float ppu=layout.pixelsPerUnit[role];
+                    foreach(var band in adjust.bands)
+                    {
+                        ushort index=(ushort)vertices.Count;
+                        float x0=(band.left-layout.bodyCenters[pose])/ppu,x1=(band.right-layout.bodyCenters[pose])/ppu;
+                        float y0=(layout.feet[role]-band.bottom)/ppu,y1=(layout.feet[role]-band.top)/ppu;
+                        vertices.Add(new Vector2(x0,y0));vertices.Add(new Vector2(x1,y0));vertices.Add(new Vector2(x1,y1));vertices.Add(new Vector2(x0,y1));
+                        triangles.Add(index);triangles.Add((ushort)(index+1));triangles.Add((ushort)(index+2));triangles.Add((ushort)(index+2));triangles.Add((ushort)(index+3));triangles.Add(index);
+                    }
+                    sprite.OverrideGeometry(vertices.ToArray(),triangles.ToArray());
+                }
+                owned.Add(sprite);Humans[role,pose]=sprite;
+            }
         }
         private static Texture2D Texture(string name,int width=0,int height=0)
         {

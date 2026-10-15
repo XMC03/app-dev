@@ -84,7 +84,8 @@ namespace SlimeAscent
             float s=Scale,ox=(Screen.width-1280*s)/2,oy=(Screen.height-720*s)/2;
             view.rect=new Rect(ox/Screen.width,oy/Screen.height,1280*s/Screen.width,720*s/Screen.height);
             Vector3 aim=view.ScreenToWorldPoint(Input.mousePosition);double uiY=(Screen.height-Input.mousePosition.y-oy)/s;
-            bool mouseInWorld=uiY>100&&uiY<610;
+            double uiX=(Input.mousePosition.x-ox)/s;
+            bool mouseInWorld=uiY>100&&uiY<610&&uiX>=0&&uiX<=1280;
             var controls=new Controls{
                 X=(Held(KeyCode.D,KeyCode.RightArrow)?1:0)-(Held(KeyCode.A,KeyCode.LeftArrow)?1:0),
                 Y=(Held(KeyCode.S,KeyCode.DownArrow)?1:0)-(Held(KeyCode.W,KeyCode.UpArrow)?1:0),
@@ -96,7 +97,7 @@ namespace SlimeAscent
             if(shownScene=="HumanWorld")
             {
                 escapeTime+=Time.deltaTime;
-                for(int i=0;i<villagers.Count;i++){villagers[i].sprite=art.Enemies[4,i%2==0?3:1,(int)(escapeTime*8)%4];villagers[i].transform.position=new Vector3(7+i*2+(i%2==0?-1:1)*escapeTime*1.4f,-8.3f,0);}
+                for(int i=0;i<villagers.Count;i++){villagers[i].sprite=art.Humans[i%5,(int)(escapeTime*2)%2==0?0:5];villagers[i].flipX=i%2==0;villagers[i].transform.position=new Vector3(7+i*2+(i%2==0?-1:1)*escapeTime*1.4f,-8.65f+Mathf.Sin(escapeTime*12+i)*.025f,0);}
                 return;
             }
             float halfWidth=10,halfHeight=5.625f;
@@ -115,7 +116,8 @@ namespace SlimeAscent
             foreach(var enemy in run.Enemies)
             {
                 var r=enemies[enemy.Id];r.gameObject.SetActive(enemy.State!=Mind.Devoured);r.transform.position=Position(enemy.Position);r.sortingOrder=Order(enemy.Position);
-                r.sprite=art.Enemies[(int)enemy.Kind,Direction(enemy.Facing),frame];
+                r.sprite=enemy.Hero?art.Humans[(int)enemy.Class,HumanPose(enemy)]:art.Enemies[(int)enemy.Kind,Direction(enemy.Facing),frame];
+                if(enemy.Hero){r.transform.position+=Vector3.down*.4f;if(Math.Abs(enemy.Facing.X)>.01)r.flipX=enemy.Facing.X<0;}
                 if(enemy.HP<lastHP[enemy.Id]){hitFlashes[enemy.Id]=.12f;damageTexts.Add(new DamageText{Position=enemy.Position,Time=.7f,Value=(int)Math.Ceiling(lastHP[enemy.Id]-enemy.HP)});}
                 lastHP[enemy.Id]=enemy.HP;hitFlashes[enemy.Id]=Mathf.Max(0,hitFlashes[enemy.Id]-Time.deltaTime);
                 r.color=enemy.State==Mind.Defeated?new Color(.55f,.55f,.6f,.68f):hitFlashes[enemy.Id]>0?new Color(1,.55f,.55f):Color.white;
@@ -123,7 +125,9 @@ namespace SlimeAscent
                 var shadow=enemyShadows[enemy.Id];shadow.enabled=enemy.State!=Mind.Devoured;shadow.transform.position=Position(enemy.Position)+Vector3.down*.22f;shadow.sortingOrder=Order(enemy.Position)-1;
                 var cone=cones[enemy.Id];cone.enabled=enemy.State!=Mind.Defeated&&enemy.State!=Mind.Devoured;cone.transform.position=Position(enemy.Position);
                 cone.transform.rotation=Quaternion.Euler(0,0,(float)(Math.Atan2(-enemy.Facing.Y,enemy.Facing.X)*180/Math.PI));
-                cone.color=enemy.Alert>.55?new Color(1,.25f,.22f,.13f):new Color(1,.8f,.5f,.07f);
+                float range=enemy.Kind==Species.Guardian?7:enemy.Class==HumanClass.Ranger?6.5f:enemy.Kind==Species.HeroMage?5.5f:4.5f;
+                cone.transform.localScale=Vector3.one*(enemy.AttackTime>0&&enemy.Attack==AttackStyle.Melee?1.35f:range)/2;
+                cone.color=enemy.AttackTime>0?enemy.Attack==AttackStyle.Heal?new Color(.3f,1,.55f,.18f):new Color(1,.3f,.2f,.25f):enemy.Alert>.55?new Color(1,.25f,.22f,.13f):new Color(1,.8f,.5f,.07f);
             }
             for(int i=0;i<run.Hazards.Count;i++)
             {
@@ -134,11 +138,26 @@ namespace SlimeAscent
                 if(h.Kind==HazardType.Rock){r.enabled=h.RockTimer>=0||h.Triggered;if(h.RockTimer>=0){r.sprite=art.Effects[9,3];r.transform.localScale=Vector3.one*(.8f/.9375f);}}
             }
             while(shotViews.Count<run.Shots.Count)shotViews.Add(Sprite("Projectile",art.Effects[8,0],run.Player,400));
-            for(int i=0;i<shotViews.Count;i++){shotViews[i].enabled=i<run.Shots.Count;if(i<run.Shots.Count){shotViews[i].transform.position=Position(run.Shots[i].Position);shotViews[i].color=run.Shots[i].Friendly?new Color(1,.5f,.2f):new Color(.6f,.4f,1);shotViews[i].sprite=art.Effects[8,frame];shotViews[i].transform.localScale=Vector3.one*.5f;}}
+            for(int i=0;i<shotViews.Count;i++)
+            {
+                var renderer=shotViews[i];renderer.enabled=i<run.Shots.Count;if(i>=run.Shots.Count)continue;
+                var shot=run.Shots[i];renderer.transform.position=Position(shot.Position);renderer.color=shot.Friendly||shot.Fire?new Color(1,.55f,.25f):shot.Class==HumanClass.Cleric?Gold:shot.Class==HumanClass.Healer?Mint:shot.Class==HumanClass.Ranger?Pale:new Color(.6f,.4f,1);
+                renderer.sprite=art.Effects[8,frame];renderer.transform.localScale=shot.Class==HumanClass.Ranger?new Vector3(.65f,.13f,1):Vector3.one*.5f;
+                renderer.transform.rotation=Quaternion.Euler(0,0,(float)(Math.Atan2(-shot.Direction.Y,shot.Direction.X)*180/Math.PI));
+            }
             gate.sprite=art.Props[run.GateOpen?6:7];gate.color=Color.white;core.enabled=run.CoreAvailable&&!run.CoreDevoured;core.transform.position=Position(run.CorePosition);
             riftAura.enabled=run.GateOpen;riftAura.sprite=art.Effects[5,frame];
             UpdateVisualEffects(frame);
             if(run.State==Phase.Playing)for(int i=particles.Count-1;i>=0;i--){var p=particles[i];p.Life-=Time.deltaTime;p.Object.transform.position+=p.Velocity*Time.deltaTime;if(p.Life<=0){Destroy(p.Object);particles.RemoveAt(i);}}
+        }
+        private int HumanPose(Enemy enemy)
+        {
+            if(enemy.State==Mind.Defeated)return 5;
+            if(enemy.Stagger>0)return 0;
+            double age=run.Clock-enemy.LastAttack;
+            if(age<0||age>enemy.AttackDuration+.35)return (int)(run.Clock*2)%2==0?0:5;
+            if(enemy.AttackTime>0)return age<enemy.AttackDuration*.5?1:2;
+            return age<enemy.AttackDuration+.1?3:age<enemy.AttackDuration+.22?4:5;
         }
         private static int Direction(Vec v){return Math.Abs(v.X)>Math.Abs(v.Y)?v.X>=0?1:3:v.Y>=0?2:0;}
         private static int Order(Vec p){return 100+(int)(p.Y*10);}
@@ -152,7 +171,7 @@ namespace SlimeAscent
             {
                 var backdrop=UnityEngine.Sprite.Create(art.Ending,new Rect(0,0,art.Ending.width,art.Ending.height),new Vector2(.5f,.5f),art.Ending.width/20f,0,SpriteMeshType.FullRect);
                 generated.Add(backdrop);Sprite("Illustrated human world",backdrop,new Vec(10,5.625),-100);
-                for(int i=0;i<4;i++)villagers.Add(Sprite("Fleeing human",art.Enemies[4,3,0],new Vec(7+i*2,8.3),190));
+                for(int i=0;i<5;i++)villagers.Add(Sprite("Fleeing human",art.Humans[i,0],new Vec(7+i*2,8.65),190));
                 view.transform.position=new Vector3(10,-5.625f,-10);PlayTrack(3);return;
             }
             int floor=run.Stats.Floor;
@@ -171,7 +190,7 @@ namespace SlimeAscent
             flameAura=Sprite("Flame Body aura",art.Effects[7,0],run.Player,99);hardenAura=Sprite("Harden shield",art.Effects[10,0],run.Player,300);senseAura=Sprite("Sense pulse",art.Effects[11,0],run.Player,-5);bossWarning=Sprite("Guardian danger radius",art.Effects[9,3],run.Player,-10);bossWarning.transform.localScale=Vector3.one*(1.7f/.9375f);
             foreach(var enemy in run.Enemies)
             {
-                enemies[enemy.Id]=Sprite(Rules.SpeciesName(enemy.Kind),art.Enemies[(int)enemy.Kind,1,0],enemy.Position,Order(enemy.Position));
+                enemies[enemy.Id]=Sprite(Rules.EnemyName(enemy),enemy.Hero?art.Humans[(int)enemy.Class,0]:art.Enemies[(int)enemy.Kind,1,0],enemy.Position,Order(enemy.Position));
                 var shadow=Sprite("Enemy ground shadow",oilArt,enemy.Position,Order(enemy.Position)-1);shadow.color=new Color(0,0,0,.27f);shadow.transform.localScale=Vector3.one*(enemy.Kind==Species.Guardian?1.1f:.65f);enemyShadows[enemy.Id]=shadow;
                 lastHP[enemy.Id]=enemy.HP;hitFlashes[enemy.Id]=0;
                 var cone=Sprite("Vision cone",visionArt,enemy.Position,-25);float range=enemy.Kind==Species.Guardian?7:enemy.Kind==Species.HeroMage?5.5f:4.5f;
@@ -201,7 +220,7 @@ namespace SlimeAscent
             if(!muted&&sounds.ContainsKey(name))fx.PlayOneShot(sounds[name]);
             if(name=="bite")SetAction(SlimeArt.Bite,.22f);if(name=="slam"||name=="tackle")SetAction(SlimeArt.Slam,.28f);if(name=="hurt")SetAction(SlimeArt.Hurt,.24f);
             if(world==null || name=="bossWarn")return;
-            int effect=name=="bite"?3:name=="slam"||name=="tackle"?2:name=="bossSlam"||name=="rock"?6:name=="devour"||name=="level"||name=="evolve"?4:name=="skill"?11:name=="hazard"?0:-1;
+            int effect=name=="bite"?3:name=="slam"||name=="tackle"?2:name=="bossSlam"||name=="rock"?6:name=="devour"||name=="level"||name=="evolve"||name=="heal"?4:name=="skill"?11:name=="hazard"?0:-1;
             if(effect>=0)
             {
                 var renderer=Sprite("Animated combat effect",art.Effects[effect,0],point,1000);
@@ -210,7 +229,7 @@ namespace SlimeAscent
                 visualEffects.Add(new VisualEffect{Renderer=renderer,Kind=effect,Duration=effect==4?.6f:.4f,Start=point,Inward=name=="devour"});
             }
             int count=name=="devour"||name=="level"||name=="hazard"||name=="rock"?12:4;
-            Color c=name=="hurt"?new Color(1,.3f,.3f):name=="devour"?Mint:Gold;
+            Color c=name=="hurt"?new Color(1,.3f,.3f):name=="devour"||name=="heal"?Mint:Gold;
             for(int i=0;i<count;i++){float a=i*Mathf.PI*2/count;var r=Sprite("Essence spark",sparkArt,point,1000);r.color=c;particles.Add(new Particle{Object=r.gameObject,Velocity=new Vector3(Mathf.Cos(a),Mathf.Sin(a),0)*1.5f,Life=.5f});}
         }
         private void UpdateVisualEffects(int frame)
@@ -255,17 +274,23 @@ namespace SlimeAscent
             if(GUI.Button(new Rect(1000,40,115,30),"Evolve [Tab]",button))run.EvolveMenu();
             if(GUI.Button(new Rect(1130,40,115,30),"Pause [P]",button))run.Pause();
             Box(new Rect(16,620,1248,86),new Color(.04f,.07f,.09f,.93f));
-            string[] skillNames={"Flame Spit · Lizard","Harden · Beetle","Echo Sense · Bat","Mana Sense · Mage"};
-            for(int i=0;i<4;i++){bool known=run.SkillKnown(i+1);Box(new Rect(30+i*205,631,194,36),known?new Color(.18f,.3f,.24f):new Color(.12f,.14f,.18f));Text(40+i*205,635,185,25,(i+1)+"  "+skillNames[i],small);}
+            string[] skillNames={"Flame Spit · Lizard","Harden · Beetle","Echo Sense · Bat","Mana Sense · Human"};
+            for(int i=0;i<4;i++)
+            {
+                bool known=run.SkillKnown(i+1);double cooldown=run.SkillRemaining(i+1);Box(new Rect(30+i*205,627,194,48),known?new Color(.18f,.3f,.24f):new Color(.12f,.14f,.18f));
+                Text(40+i*205,627,185,25,(i+1)+"  "+skillNames[i],small);
+                Text(40+i*205,650,185,22,!known?"Devour to learn":(cooldown>0?cooldown.ToString("F1")+"s":run.Stats.Essence<run.SkillCost(i+1)?"NEED ESSENCE":"READY")+" · "+run.SkillCost(i+1)+" Essence",small);
+            }
             Text(860,628,385,30,run.GateOpen?"RIFT GATE · F":"GATE SEALED · DEVOUR THE CORE",small);
             Text(30,674,1200,25,"WASD Move · Mouse aim · LMB Bite · RMB Slam · Space Tackle · E Devour · Shift Hide · F Gate",small);
-            Text(24,99,1000,30,run.Message,small);
+            Text(24,99,900,30,run.Message,small);
+            Text(950,99,310,30,"Slam "+(run.SlamCooldown>0?run.SlamCooldown.ToString("F1")+"s":"ready")+" · Dodge "+(run.TackleCooldown>0?run.TackleCooldown.ToString("F1")+"s":"ready"),small);
             DrawEnemyUI();
             foreach(var damage in damageTexts){var pos=UiPoint(damage.Position);float rise=(.7f-damage.Time)*45;Text(pos.x-25,pos.y-40-rise,65,24,"−"+damage.Value,heading);}
             if(run.DevourTarget>=0){
                 Vector2 ring=UiPoint(run.Player);for(int i=0;i<24;i++){double angle=i*Math.PI*2/24;Box(new Rect(ring.x+(float)Math.Cos(angle)*31-2,ring.y+(float)Math.Sin(angle)*31-2,4,4),i/24.0<run.DevourTime/1.25?Mint:new Color(.2f,.3f,.25f,.8f));}
                 Vec p=run.Player;Vector2 screen=UiPoint(p);Bar(screen.x-50,screen.y+30,100,8,run.DevourTime/1.25,Mint);Text(screen.x-75,screen.y+42,150,25,"DEVOURING · HOLD E",small);}
-            else foreach(var e in run.Enemies)if(e.Kind!=Species.Guardian&&e.State!=Mind.Devoured&&e.HP<=e.MaxHP*.25&&Vec.Distance(run.Player,e.Position)<1.05){var p=UiPoint(run.Player);Text(p.x-100,p.y+32,220,25,"HOLD E · "+Rules.SpeciesName(e.Kind),small);break;}
+            else foreach(var e in run.Enemies)if(e.Kind!=Species.Guardian&&e.State!=Mind.Devoured&&e.HP<=e.MaxHP*.25&&Vec.Distance(run.Player,e.Position)<1.05&&run.Sight(run.Player,e.Position)){var p=UiPoint(run.Player);Text(p.x-100,p.y+32,220,25,"HOLD E · "+Rules.EnemyName(e),small);break;}
             if(run.CoreAvailable){var p=UiPoint(run.CorePosition);Text(p.x-70,p.y-45,180,25,"DUNGEON CORE · HOLD E",small);}
             if(Vec.Distance(run.Player,run.Gate)<1.2){var p=UiPoint(run.Gate);Text(p.x-70,p.y-55,180,25,run.GateOpen?"PRESS F TO CROSS":"CORE REQUIRED",small);}
         }
@@ -273,8 +298,14 @@ namespace SlimeAscent
         {
             foreach(var e in run.Enemies)if(e.State!=Mind.Devoured&&e.State!=Mind.Defeated)
             {
-                var p=UiPoint(e.Position);if(p.x>0&&p.x<1280&&p.y>100&&p.y<610){Bar(p.x-22,p.y-27,44,4,e.HP/e.MaxHP,e.Hero?new Color(.9f,.5f,.4f):Mint);if(e.Telegraph>0){var warn=UiPoint(e.SlamPoint);Text(warn.x-110,warn.y-95,220,26,"GUARDIAN SLAM · DODGE",center);}}
-                else if(run.EchoTime>0||(run.ManaTime>0&&(e.Kind==Species.HeroMage||e.Kind==Species.Guardian))){float x=Mathf.Clamp(p.x,35,1245),y=Mathf.Clamp(p.y,150,590);Text(x-30,y-10,90,25,Rules.SpeciesName(e.Kind),small);}
+                var p=UiPoint(e.Position);if(p.x>0&&p.x<1280&&p.y>100&&p.y<610)
+                {
+                    Bar(p.x-22,p.y-27,44,4,e.HP/e.MaxHP,e.Hero?new Color(.9f,.5f,.4f):Mint);
+                    if(e.Hero)Text(p.x-65,p.y-58,140,24,Rules.EnemyName(e),small);
+                    if(e.AttackTime>0){Bar(p.x-26,p.y-33,52,3,1-e.AttackTime/e.AttackDuration,e.Attack==AttackStyle.Heal?Mint:Gold);Text(p.x-65,p.y-80,150,22,e.Attack==AttackStyle.Heal?"HEALING":e.Attack==AttackStyle.Ranged?"TAKING AIM":"STRIKE · DODGE",small);}
+                    if(e.Telegraph>0){var warn=UiPoint(e.SlamPoint);Text(warn.x-110,warn.y-95,220,26,"GUARDIAN SLAM · DODGE",center);}
+                }
+                else if(run.EchoTime>0||(run.ManaTime>0&&(e.Kind==Species.HeroMage||e.Kind==Species.Guardian))){float x=Mathf.Clamp(p.x,35,1245),y=Mathf.Clamp(p.y,150,590);Text(x-30,y-10,90,25,Rules.EnemyName(e),small);}
             }
         }
         private Vector2 UiPoint(Vec point)
@@ -316,7 +347,7 @@ namespace SlimeAscent
         {
             Overlay();Text(140,70,1040,65,"Choose what the villain becomes.",title);
             Text(140,139,1040,35,"Level "+run.Stats.Level+" · HP "+run.MaxHP+" · Damage "+run.Damage+" · Speed "+run.Speed.ToString("F2")+" · Biomass capacity "+run.Capacity,label);
-            string[] traitNames={"Enhanced Senses — Rat","Echo Sense — Cave Bat","Fire Resistance — Fire Lizard","Harden — Armored Beetle","Mana Sense — Hero Mage"};
+            string[] traitNames={"Enhanced Senses — Rat","Echo Sense — Cave Bat","Fire Resistance — Fire Lizard","Harden — Armored Beetle","Mana Sense — Caster / Ranger"};
             Species[] kinds={Species.Rat,Species.CaveBat,Species.FireLizard,Species.ArmoredBeetle,Species.HeroMage};
             for(int i=0;i<5;i++)Text(150,203+i*45,690,35,(run.HasTrait(kinds[i])?"UNLOCKED  ":"LOCKED  ")+traitNames[i]+" · Devoured "+run.Stats.Eaten[(int)kinds[i]],label);
             string[] forms={"AWAKENING","FIRE RESISTANCE","HEAT IMMUNITY","FLAME BODY"};
@@ -355,7 +386,7 @@ namespace SlimeAscent
         }
         private void CreateAudio()
         {
-            string[] names={"bite","slam","tackle","devour","level","skill","hurt","defeat","hazard","trap","rock","bossSlam","evolve","escape","death","battle"};
+            string[] names={"bite","slam","tackle","devour","level","skill","hurt","defeat","hazard","trap","rock","bossSlam","evolve","escape","death","battle","heal"};
             for(int i=0;i<names.Length;i++)sounds[names[i]]=Tone(names[i],new[]{180f+i*31,260f+i*37},.09f,false);
             tracks[0]=Tone("Lower music",new[]{110f,164.8f,130.8f,146.8f,110f,196f,164.8f,130.8f},.9f,true);
             tracks[1]=Tone("Middle music",new[]{146.8f,220f,174.6f,164.8f,146.8f,261.6f,220f,164.8f},.7f,true);

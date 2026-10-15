@@ -96,7 +96,7 @@ internal static class Program
                 game.Player=new Vec(4.5,9.5);game.Step(0,new Controls{Hide=true});Check(!game.Hidden,"Unmarked hiding allowed");
             });
             Test("Heroes and monsters fight, leaving Devour opportunities",()=>{
-                var game=Start();var rat=Prey(game,Species.Rat,new Vec(7.2,7.5),false);var hero=Prey(game,Species.HeroWarrior,new Vec(6.5,7.5),false);game.Step(.02,new Controls());Check(rat.HP<rat.MaxHP&&hero.HP<hero.MaxHP,"Faction battle did not happen");Check(rat.Alert<.1,"Monster blamed an unseen slime for hero damage");
+                var game=Start();game.Player=new Vec(3.5,12.5);var rat=Prey(game,Species.Rat,new Vec(7.2,7.5),false);var hero=Prey(game,Species.HeroWarrior,new Vec(6.5,7.5),false);Tick(game,.6,new Controls());Check(rat.HP<rat.MaxHP&&hero.HP<hero.MaxHP,"Faction battle did not happen after wind-ups");Check(rat.Alert<.1,"Monster blamed an unseen slime for hero damage");
             });
             Test("Guardian slam has a readable warning and can be dodged",()=>{
                 var game=Start();game.Player=new Vec(5.5,7.5);var boss=Prey(game,Species.Guardian,new Vec(7.5,7.5),false);boss.Facing=new Vec(-1,0);boss.Alert=1;game.Step(0,new Controls());Check(boss.Telegraph>1,"Guardian did not warn");double hp=game.Stats.HP;game.Player=new Vec(5.5,10.5);Tick(game,1.2,new Controls());Check(game.Stats.HP==hp,"Dodging the slam did not avoid damage");
@@ -119,6 +119,71 @@ internal static class Program
                     game.Step(.02,new Controls{X=delta.Length>.8?Math.Sign(delta.X):0,Y=delta.Length>.8?Math.Sign(delta.Y):0,Aim=delta,Bite=!edible,Devour=edible});
                 }
                 Check(rat.State==Mind.Devoured&&game.Stats.HP>0&&game.HasTrait(Species.Rat),"Opening prey encounter failed");
+            });
+            Test("All five human classes spawn across the campaign with stable prey rewards",()=>{
+                var found=new HashSet<HumanClass>();
+                for(int floor=0;floor<3;floor++){var game=new Rules();game.Continue(new Progress{Floor=floor});foreach(var enemy in game.Enemies)if(enemy.Hero){found.Add(enemy.Class);Check(enemy.Kind==(enemy.Class==HumanClass.Warrior||enemy.Class==HumanClass.Rogue?Species.HeroWarrior:Species.HeroMage),"Class broke GDD reward category");}}
+                Check(found.Count==5,"A supplied human class is missing");
+            });
+            Test("Normal melee warns first and a sidestep avoids the committed strike",()=>{
+                foreach(bool dodge in new[]{false,true}){
+                    var game=Start();var hero=Prey(game,Species.HeroWarrior,game.Player+new Vec(.8,0),false);hero.Alert=1;hero.Facing=new Vec(-1,0);double hp=game.Stats.HP;
+                    game.Step(0,new Controls());Check(hero.AttackTime>.4&&game.Stats.HP==hp,"Melee hit without a wind-up");
+                    if(dodge)game.Player=hero.Position+new Vec(-.4,.9);Tick(game,.55,new Controls());Check(dodge?game.Stats.HP==hp:game.Stats.HP<hp,"Committed melee strike resolved incorrectly");
+                }
+            });
+            Test("Slam interrupts normal attacks and defeating a boss clears its warning",()=>{
+                var game=Start();var hero=Prey(game,Species.HeroWarrior,game.Player+new Vec(.8,0),false);hero.Alert=1;hero.Facing=new Vec(-1,0);game.Step(0,new Controls());
+                game.Step(0,new Controls{Aim=new Vec(1,0),Slam=true});Check(hero.AttackTime==0&&hero.Stagger>0,"Slam did not interrupt");double hp=game.Stats.HP;Tick(game,.25,new Controls());Check(game.Stats.HP==hp,"Interrupted strike still hit");
+                var boss=Prey(game,Species.Guardian,game.Player+new Vec(2,0),false);boss.Telegraph=1;game.Hit(boss,boss.MaxHP);Check(boss.Telegraph==0,"Defeated boss retained danger warning");
+            });
+            Test("Ranger holds firing distance, commits aim and retreats during recovery",()=>{
+                var game=Start();var ranger=Prey(game,Species.HeroMage,game.Player+new Vec(3,0),false);ranger.Class=HumanClass.Ranger;ranger.Alert=1;ranger.Facing=new Vec(-1,0);Vec start=ranger.Position;
+                game.Step(0,new Controls());Check(ranger.Attack==AttackStyle.Ranged&&ranger.AttackTime>0&&Vec.Distance(start,ranger.Position)<.001,"Ranger charged into melee");
+                game.Player+=new Vec(0,2);Tick(game,.5,new Controls());Check(game.Shots.Count==1&&game.Shots[0].Class==HumanClass.Ranger&&game.Shots[0].Direction.Y==0,"Arrow homed after aim was committed");
+                game.Shots.Clear();game.Player=ranger.Position-new Vec(1,0);Vec before=ranger.Position;game.Step(.05,new Controls());Check(ranger.Position.X>before.X,"Ranger did not retreat at close range");
+            });
+            Test("Healer supports living humans, cannot revive a corpse and can be interrupted",()=>{
+                foreach(int scenario in new[]{0,1,2}){
+                    var game=Start();game.Player=new Vec(3.5,12.5);var healer=Prey(game,Species.HeroMage,new Vec(7.5,7.5),false);healer.Class=HumanClass.Healer;
+                    var ally=Prey(game,Species.HeroWarrior,new Vec(8.5,7.5),false);game.Hit(ally,20,false);double hp=ally.HP;game.Step(0,new Controls());Check(healer.Attack==AttackStyle.Heal&&healer.AttackTime>.6,"Healer did not begin support cast");
+                    if(scenario==1)game.Hit(ally,ally.HP);if(scenario==2){game.Player=healer.Position-new Vec(.8,0);game.Step(0,new Controls{Aim=new Vec(1,0),Slam=true});}
+                    Tick(game,.75,new Controls());Check(scenario==0?ally.HP>hp:scenario==1?ally.State==Mind.Defeated&&ally.HP==0:ally.HP<=hp,"Healing ignored life state or interruption");
+                }
+            });
+            Test("Swept projectiles hit fast crossings and terminate at walls before hazards",()=>{
+                var game=Start();var prey=Prey(game,Species.ArmoredBeetle,new Vec(4.5,7.5),false);game.Shots.Add(new Shot{Position=game.Player,Direction=new Vec(1,0),Friendly=true,Speed=80,Damage=10});game.Step(.05,new Controls());Check(prey.HP==prey.MaxHP-10&&game.Shots.Count==0,"Fast shot skipped prey");
+                game=Start();game.Player=new Vec(3.5,12.5);prey=Prey(game,Species.ArmoredBeetle,new Vec(7.5,4.5),false);var oil=new Hazard(HazardType.Oil,6.5,4.5);game.Hazards.Add(oil);
+                game.Shots.Add(new Shot{Position=new Vec(5.8,4.5),Direction=new Vec(1,0),Friendly=true,Fire=true,Speed=80,Damage=10});game.Step(.05,new Controls());Check(prey.HP==prey.MaxHP&&!oil.Triggered&&game.Shots.Count==0,"Shot interacted through solid stone");
+            });
+            Test("Devour requires sight around wall corners and keeps a valid channel target",()=>{
+                var game=Start();game.Player=new Vec(5.7,4.8);var rat=Prey(game,Species.Rat,new Vec(6.5,5.3));Check(Vec.Distance(game.Player,rat.Position)<1.05&&!game.Sight(game.Player,rat.Position),"Wall-corner fixture is invalid");
+                Tick(game,1.4,new Controls{Devour=true});Check(rat.State!=Mind.Devoured,"Devoured through a wall corner");
+                var barrel=new Hazard(HazardType.Oil,rat.Position.X,rat.Position.Y,true);game.Hazards.Add(barrel);game.Step(0,new Controls{Aim=rat.Position-game.Player,Slam=true});Check(!barrel.Triggered,"Slam smashed a barrel through stone");
+                game=Start();rat=Prey(game,Species.Rat,game.Player+new Vec(.7,0));game.Step(.2,new Controls{Devour=true});var bat=Prey(game,Species.CaveBat,game.Player+new Vec(.3,0));
+                Tick(game,1.1,new Controls{Devour=true});Check(rat.State==Mind.Devoured&&bat.State!=Mind.Devoured,"Closer prey stole the active channel");
+            });
+            Test("Dodge takes priority, does not stack movement and hits each prey once",()=>{
+                var game=Start();var prey=Prey(game,Species.ArmoredBeetle,game.Player+new Vec(.8,0),false);var events=new List<string>();game.Effect+=(name,p)=>events.Add(name);Vec start=game.Player;
+                game.Step(.2,new Controls{X=1,Aim=new Vec(1,0),Tackle=true,Slam=true,Bite=true});
+                Check(Math.Abs(Vec.Distance(start,game.Player)-1.6)<.001,"Dodge stacked walking or overshot duration");Check(prey.HP==prey.MaxHP-game.Damage*1.3,"Dodge damaged prey more than once");Check(events.Contains("tackle")&&!events.Contains("slam")&&!events.Contains("bite"),"Input frame stacked attacks");
+            });
+            Test("A nearly ready dodge can be buffered and UI exposes real skill cooldown",()=>{
+                var game=Start();game.TackleCooldown=.08;game.Step(.02,new Controls{Tackle=true,Aim=new Vec(1,0)});Check(game.TackleCooldown<.1,"Dodge fired before cooldown");game.Step(.08,new Controls());Check(game.TackleCooldown>1,"Buffered dodge was lost");
+                game=Start();game.Stats.Eaten[(int)Species.ArmoredBeetle]=1;game.Stats.Essence=20;game.Step(0,new Controls{Skill=2});Check(game.SkillRemaining(2)==7,"HUD cooldown differs from rules");game.Step(.2,new Controls());Check(Math.Abs(game.SkillRemaining(2)-6.8)<.001,"Cooldown lost elapsed frame time");
+            });
+            Test("Substeps retain elapsed time, movement and single-press skill semantics",()=>{
+                var a=Start();var b=Start();foreach(var game in new[]{a,b}){game.Stats.Eaten[2]=1;game.Stats.Essence=30;}
+                a.Step(.2,new Controls{X=1,Aim=new Vec(1,0),Skill=1});for(int i=0;i<10;i++)b.Step(.02,new Controls{X=1,Aim=new Vec(1,0),Skill=i==0?1:0});
+                Check(Math.Abs(a.Clock-.2)<.001&&Vec.Distance(a.Player,b.Player)<.001&&a.Stats.Essence==24&&a.Shots.Count==b.Shots.Count,"Frame grouping changed simulation");
+                a.Pause();double clock=a.Clock;a.Step(.2,new Controls{Tackle=true});Check(a.Clock==clock,"Paused catch-up advanced the game");
+            });
+            Test("Damage and offensive actions interrupt Devour; hiding cancels an active dash",()=>{
+                var game=Start();var rat=Prey(game,Species.Rat,game.Player+new Vec(.5,0));game.Step(.2,new Controls{Devour=true});Check(game.DevourTime>.1,"Channel did not start");
+                game.Shots.Add(new Shot{Position=game.Player,Direction=new Vec(1,0),Damage=1,Speed=0});game.Step(.02,new Controls{Devour=true});Check(game.DevourTime==0,"Taking damage continued the channel");
+                game.Step(.2,new Controls{Devour=true});game.Step(0,new Controls{Bite=true,Devour=true,Aim=new Vec(1,0)});Check(game.DevourTime==0,"Biting continued the channel");
+                game.Step(.2,new Controls{Devour=true});game.Stats.Eaten[2]=1;game.Stats.Essence=20;game.Step(0,new Controls{Skill=1,Devour=true});Check(game.DevourTime==0,"Offensive spell continued the channel");
+                game=Start();game.Step(.04,new Controls{Tackle=true,Aim=new Vec(1,0)});game.HideSpots.Add(game.Player);game.Step(.02,new Controls{Hide=true});Vec hidden=game.Player;game.Step(.04,new Controls());Check(Vec.Distance(hidden,game.Player)<.001,"Dash resumed after leaving a hiding spot");
             });
             Test("Invalid checkpoint metadata is rejected",()=>{
                 var game=new Rules();Check(!game.Continue(new Progress{Floor=3}),"Invalid floor accepted");Check(!game.Continue(new Progress{HP=double.PositiveInfinity}),"Invalid HP accepted");Check(!game.Continue(new Progress{Eaten=null}),"Invalid traits accepted");

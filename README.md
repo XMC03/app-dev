@@ -8,6 +8,8 @@ See **[opening and gameplay instructions](unity/SlimeAscent/README.md)** and **[
 
 The visual update includes animated slime evolutions and enemies, three dungeon themes, combat effects, and illustrated title/ending backgrounds. View the **[art preview](unity/SlimeAscent/Assets/Resources/Art/art-preview.png)** and **[art guide](unity/SlimeAscent/ART.md)**. Download the full project folder to include the textures.
 
+The human-class update adds **Warrior, Cleric, Ranger, Healer and Rogue** designs with timed combat poses and distinct behavior. It also adds normal attack warnings, interrupts, buffered dodges, stable Devour targeting, swept projectile collision and clearer cooldown/Essence feedback. The Unity-independent suite now passes **30 checks**.
+
 ## Unity version
 
 The Unity 2D desktop project is in **`unity/Nightfall`**. Install Unity Hub and Unity 6.6, add that folder as a project, open `Assets/Scenes/Nightfall.unity`, and press **Play**. The forest is generated when Play starts.
