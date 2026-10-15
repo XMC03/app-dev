@@ -12,7 +12,38 @@ A Unity 6.6, single-player, offline, top-down dungeon action RPG prototype based
 6. Press **Play ▶**, select the **Game** tab, and click **Begin a new ascent**.
 7. Watch the short opening, or press Enter to skip it. The dungeon is generated when playing; Edit-mode scenes are intentionally minimal.
 
-The project uses the built-in render pipeline. Artwork and sound are generated locally in C#, so there are no asset downloads, API keys, or manual Inspector references to assign. It uses Unity's legacy Input Manager, which Unity 6.6 may mark deprecated; that warning does not mean the game has a compile error.
+The project uses the built-in render pipeline. Included PNG sprite atlases and illustrations load automatically; sound is synthesized locally in C#. There are no separate asset downloads, API keys, or manual Inspector references to assign. It uses Unity's legacy Input Manager, which Unity 6.6 may mark deprecated; that warning does not mean the game has a compile error.
+
+**Updating an earlier copy:** download the latest ZIP from `codex/slime-ascent` and add its `unity/SlimeAscent` folder as a fresh project in Hub. Copying only the scripts will omit the new `Assets/Resources/Art` textures and their import settings.
+
+## Visual improvements
+
+- Four visibly different slime forms, each with four directions and four-frame idle, movement, Bite, Slam/Tackle, hurt and Devour animations.
+- Distinct Rat, Bat, Lizard, Beetle and Guardian sprites, plus five human classes adapted from your supplied designs: Warrior, Cleric, Ranger, Healer and Rogue.
+- Lower-floor moss, pools and fungi; Middle-floor carpets and hero camps; Upper-floor obsidian, crystals and sanctuary runes.
+- Animated fire, gas, projectiles, impact effects, Devour essence, skill auras and active Rift glow; hit flashes and floating damage numbers.
+- Circular Guardian and falling-rock warnings sized to their damage areas.
+- Illustrated title/opening and human-world ending backgrounds, plus evolution-form previews in Tab.
+
+See the [art preview](Assets/Resources/Art/art-preview.png) and [asset layout and customization guide](ART.md). Decorative scenery does not change map collision or gameplay rules.
+
+## Human classes and combat improvements
+
+The [human sprite sheet](Assets/Resources/Art/humans.png) contains six poses per class. Attack anticipation, impact and recovery follow combat timing. Horizontal mirroring supplies left-facing poses; the sheet does not supply walking or back-view frames. The human-world ending also uses the new designs.
+
+| Class | Behavior | Where to find it |
+| --- | --- | --- |
+| Warrior | Melee strike with a visible wind-up. | Third room on every floor. |
+| Cleric | Commits its aim, then casts a golden ranged attack. | Lower floor, third room. |
+| Ranger | Fires faster arrows from farther away; retreats when crowded during recovery. | Middle floor, third room. |
+| Healer | Channels a green heal on a wounded living human, or attacks at range. Slam/Tackle can interrupt the heal. | Upper floor, third room. |
+| Rogue | Faster pursuit and shorter melee wind-up, with lower damage per hit. | Middle and Upper floors, second room. |
+
+Normal enemy attacks now show a warning and recovery window. Step outside the red melee cone, interrupt with Slam/Tackle, or dodge with Space. Projectiles keep their committed direction, check the path they travel and stop at stone. The skill bar shows actual Essence costs, cooldowns and insufficient-Essence status.
+
+Dodge and Slam accept inputs up to **0.15 seconds** before their cooldown finishes. Dodge takes priority over Slam and Bite; a single input frame cannot stack all three. A dodge hits each creature once along its path and does not gain extra distance from walking. Hiding cancels an active dash.
+
+Devour keeps its current target while that target remains eligible and visible. Walls, taking damage, attacking, Flame Spit or dashing interrupt the channel. Release E and stop attacking when you want to eat. Simulation uses small substeps to retain normal frame time during brief slowdowns, with catch-up capped at 0.25 seconds per update.
 
 ## Controls
 
@@ -48,8 +79,8 @@ Heroes and dungeon monsters can fight each other. This creates weakened prey and
 - **Cave Bat:** Echo Sense — skill 3 reveals enemy directions for six seconds.
 - **Fire Lizard:** Fire Resistance and Flame Spit (skill 1). In Tab, spend Essence after repeated Lizard Devours to evolve **Fire Resistance → Heat Immunity → Flame Body**.
 - **Armored Beetle:** Harden (skill 2) reduces incoming damage for four seconds.
-- **Hero Mage:** Mana Sense (skill 4) reveals Mage/Guardian directions for six seconds.
-- **Hero Warrior:** XP, Essence and Biomass rewards; the GDD's five named traits remain the trait set.
+- **Hero Mage lineage — Cleric, Ranger, Healer:** Mana Sense (skill 4) reveals their and the Guardian's directions for six seconds.
+- **Hero Warrior lineage — Warrior, Rogue:** XP, Essence and Biomass rewards; the GDD's five named traits remain the trait set.
 
 Leveling raises maximum HP, damage, movement speed and Biomass capacity. Essence is consumed by skills. Biomass represents digestion load: consuming large prey fills it, and it decreases over time. If it is full, wait before Devouring again.
 
@@ -77,11 +108,11 @@ To export: install the matching desktop build-support module in Hub, select Wind
 
 See [GDD coverage and tuning](DESIGN.md) for the requirement mapping and the specific values chosen where the GDD leaves details open. The worksheet's prompts were treated as document context; the filled design supplied the gameplay requirements. The original assignment PDF and personal group information are not included in the repository.
 
-This is a source prototype with procedural pixel artwork and synthesized sound/music. It does not add multiplayer, crafting, equipment, quests, procedural levels, additional bosses, or a playable human world.
+This is a source prototype with included pixel sprite atlases, generated background illustrations and synthesized sound/music. It does not add multiplayer, crafting, equipment, quests, procedural levels, additional bosses, or a playable human world.
 
 ## Validation — what is and is not verified
 
-**19 executable C# checks pass**, including source syntax, movement/collision, attacks, Devour and rewards, all five traits, the full fire chain, Essence skills, fire/gas propagation, linked rocks, hiding, faction battles, Guardian telegraphs, checkpoints, floor transitions, Core consumption, escape, and the initial rat encounter using directional input with the original enemies active.
+**30 executable C# checks pass**, including source syntax, movement/collision, attacks, Devour and rewards, all five traits, the full fire chain, Essence skills, fire/gas propagation, linked rocks, hiding, faction battles, Guardian telegraphs, checkpoints, floor transitions, Core consumption, escape, and the initial rat encounter using directional input with the original enemies active. New scenarios cover all five human classes, melee dodges and interrupts, Ranger behavior, Healer support and life-state checks, swept projectiles, wall-corner visibility, stable Devour targeting, input buffers, dash damage/distance, frame substeps and channel interruption.
 
 Combat and transition checks also use controlled fixtures to isolate rules. They do **not** establish that a human can complete the whole campaign or that its difficulty is balanced.
 
@@ -95,3 +126,11 @@ python3 unity/validate_slime_project.py
 ```
 
 These tools require no NuGet packages. Keep `SlimeChecks` outside the Unity Assets directory.
+
+Optional artwork checks require Python with Pillow (`python3 -m pip install Pillow`):
+
+```sh
+python3 tests/art/check_slime_art.py
+```
+
+These checks cover the original 612 atlas cells plus 30 human poses, class/pose order, transparency, frame boundaries, foot anchors, clipping-band bounds, illustration dimensions and pixel-safe texture settings. They do not verify Unity rendering. Python and .NET are development tools; neither is required to open or play the project in Unity.

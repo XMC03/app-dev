@@ -1,0 +1,117 @@
+{
+  "width": 1536,
+  "height": 1024,
+  "source": "Image-generation adaptation of the human class sheet supplied by the user; not pixel-identical crops. PNG is included unchanged.",
+  "classes": [
+    "Warrior",
+    "Cleric",
+    "Ranger",
+    "Healer",
+    "Rogue"
+  ],
+  "columns": [
+    0,
+    256,
+    512,
+    768,
+    1056,
+    1280,
+    1536
+  ],
+  "rowEdges": [
+    0,
+    235,
+    461,
+    663,
+    855,
+    1024
+  ],
+  "feet": [
+    228,
+    457,
+    659,
+    853,
+    1014
+  ],
+  "bodyCenters": [
+    137,
+    395,
+    650,
+    901,
+    1163,
+    1420
+  ],
+  "pixelsPerUnit": [
+    174,
+    174,
+    170,
+    158,
+    138
+  ],
+  "adjustments": [
+    {
+      "role": 0,
+      "pose": 2,
+      "left": 512,
+      "right": 784
+    },
+    {
+      "role": 0,
+      "pose": 3,
+      "left": 784,
+      "right": 1056
+    },
+    {
+      "role": 4,
+      "pose": 2,
+      "left": 512,
+      "right": 824,
+      "bands": [
+        {
+          "left": 512,
+          "right": 768,
+          "top": 855,
+          "bottom": 1024
+        },
+        {
+          "left": 768,
+          "right": 824,
+          "top": 918,
+          "bottom": 951
+        }
+      ]
+    },
+    {
+      "role": 4,
+      "pose": 3,
+      "left": 768,
+      "right": 1040,
+      "bands": [
+        {
+          "left": 768,
+          "right": 1040,
+          "top": 855,
+          "bottom": 918
+        },
+        {
+          "left": 824,
+          "right": 1040,
+          "top": 918,
+          "bottom": 951
+        },
+        {
+          "left": 768,
+          "right": 1040,
+          "top": 951,
+          "bottom": 1024
+        }
+      ]
+    },
+    {
+      "role": 4,
+      "pose": 4,
+      "left": 1040,
+      "right": 1280
+    }
+  ]
+}
